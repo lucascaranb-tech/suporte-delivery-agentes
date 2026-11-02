@@ -153,5 +153,3 @@ Casos cobertos: `tracking_simple`, `late_order_refund`, `other_customer_order`, 
 
 Lucas Caram Bueno · [LinkedIn](https://www.linkedin.com/in/lucas-caram1810) · [GitHub](https://github.com/lucascaranb-tech)
 ````
-
-Para aplicar: abra o `README.md` no VS Code, apague tudo, cole esse conteúdo, salve e rode `git pull`, `git add .`, `git commit -m "Ajusta README"` e `git push`.
