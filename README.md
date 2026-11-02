@@ -1,70 +1,150 @@
-# Delivery Support Agents
+# Agentes para Suporte em Entregas
 
-A multi-agent customer support system for food delivery, built with Python, FastAPI and the OpenAI API (gpt-4o-mini).
+Um sistema de suporte ao cliente baseado em múltiplos agentes para serviços de entrega de comida, desenvolvido com Python, FastAPI e a API da OpenAI (gpt-4o-mini).
 
-A customer writes about a late order, a missing item or a refund. A triage agent understands the intent and sends the chat to the right specialist agent. The agent uses tools to read the order, check the company policy and issue a refund, or escalate to a human.
+Quando um cliente entra em contato relatando um atraso no pedido, um item faltante ou solicitando um reembolso, um "agente de triagem" identifica a intenção e encaminha o atendimento para o agente especialista adequado. Esse agente utiliza ferramentas específicas para consultar os detalhes do pedido, verificar as políticas da empresa e realizar o reembolso — ou, se necessário, escalar o caso para um atendente humano.
 
-## Why this project
+## Por que este projeto?
 
-This is my third AI agent project, after a restaurant order agent and a digital bank agent. Here I focus on what makes agents safe and reliable in production:
+Este é o meu terceiro projeto envolvendo agentes de IA, após desenvolver soluções para pedidos em restaurantes e para um banco digital. O foco aqui está nos elementos que tornam os agentes seguros e confiáveis ​​para um ambiente de produção:
 
-- Multi-agent routing (triage agent + specialist agents)
-- Tool calling with a small set of tools per agent
-- RAG over policy documents (embeddings + cosine similarity)
-- Guardrails: PII masking, prompt injection detection, hard refund limit in code
-- Audit log of every tool call
-- Automatic evals to test agent behavior
+- Roteamento entre múltiplos agentes (agente de triagem + agentes especialistas)
+- Uso de ferramentas (*tool calling*), com um conjunto restrito de funcionalidades para cada agente
+- RAG (*Retrieval-Augmented Generation*) aplicado a documentos de políticas (utilizando *embeddings* e similaridade de cosseno)
+- Mecanismos de proteção (*guardrails*): mascaramento de dados sensíveis (PII), detecção de *prompt injection* e limites rígidos para reembolsos definidos no código
+- Registro de auditoria (*audit log*) de todas as chamadas de ferramentas
+- Avaliações automatizadas (*evals*) para testar o comportamento dos agentes
+[Estrutura do projeto (1).md](https://github.com/user-attachments/files/34254632/Estrutura.do.projeto.1.md)
+cliente -> FastAPI (/chat)
+             |
+             v
+        Classificador de intenção
+             |
+   +---------+-----------+-----------+
+   v                     v           v
+Agente de pedido    Agente de      Guardrails
+(get_order)         política       (unsafe)
+                    (RAG)
+             |
+             v
+     issue_refund + audit log (SQLite)
+```
 
-## Architecture
+## Estrutura do projeto
 
-    Customer message
-          |
-     Guardrails (mask CPF/card, detect injection)
-          |
-     Triage agent --> unsafe --> safe fixed reply
-          |
-     tracking / problem / general
-          |
-     Specialist agent <--> Tools (orders, policy RAG, refund, escalate)
-          |
-     Reply + tool trace + audit log
+```
+delivery-support-agents/
+├── app/
+│   ├── agents.py       # orquestração dos agentes
+│   ├── config.py       # variáveis de ambiente
+│   ├── db.py           # banco SQLite com pedidos de exemplo
+│   ├── guardrails.py   # detecção de prompt injection e limites
+│   ├── main.py         # API FastAPI (/chat, /audit)
+│   ├── policies.md     # políticas usadas no RAG
+│   ├── rag.py          # embeddings e busca de políticas
+│   └── tools.py        # ferramentas: get_order, search_policy, issue_refund
+├── evals/
+│   ├── cases.json      # casos de teste
+│   └── run_evals.py    # executa os casos e mostra PASS/FAIL
+├── requirements.txt
+├── .env.example
+└── .gitignore
+```
 
-## Key design decisions
+## Como rodar
 
-1. **The LLM never sends customer_id.** The server injects it into every tool call. The model cannot read orders of another customer, even if the user asks.
-2. **Business rules live in code, not only in the prompt.** The refund limit (R$ 50), the duplicate refund check and the order ownership check are in `tools.py`. If the model makes a mistake, the code still protects the money.
-3. **Least privilege.** Each agent only has the tools it needs. The tracking agent cannot refund.
-4. **Evals first.** `evals/cases.json` has cases for normal flows, data leaks, prompt injection and refund abuse.
+### 1. Clonar e entrar na pasta
 
-## Run it
+```
+git clone https://github.com/lucascaranb-tech/delivery-support-agents.git
+cd delivery-support-agents
+```
 
-    python -m venv .venv
-    source .venv/bin/activate
-    pip install -r requirements.txt
-    cp .env.example .env        # add your OpenAI key
-    uvicorn app.main:app --reload
+### 2. Criar e ativar o ambiente virtual
 
-Try it:
+Windows (PowerShell):
 
-    curl -X POST localhost:8000/chat -H "Content-Type: application/json" \
-      -d '{"session_id":"s1","customer_id":"c1","message":"Meu pedido A101 chegou 45 min atrasado, quero reembolso"}'
+```
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
 
-Run the evals:
+Mac ou Linux:
 
-    python -m evals.run_evals
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-## Project structure
+### 3. Instalar dependências
 
-- `app/agents.py` - triage, specialist agents, tool-calling loop
-- `app/tools.py` - tools, schemas, business rules, audit log
-- `app/rag.py` - policy search with embeddings
-- `app/guardrails.py` - PII masking and injection detection
-- `evals/` - test cases and eval runner
+```
+pip install -r requirements.txt
+```
 
-## Next steps
+### 4. Configurar a chave da OpenAI
 
-- Add authentication (JWT) to get customer_id
-- Replace SQLite with PostgreSQL and the in-memory index with pgvector
-- Add tracing (OpenTelemetry or Langfuse) and cost metrics
-- Add a human-in-the-loop dashboard for escalated tickets
-- Add more eval cases and an LLM-as-judge for tone and quality
+Copie o `.env.example` para `.env` e preencha:
+
+```
+OPENAI_API_KEY=sua-chave-aqui
+OPENAI_MODEL=gpt-4o-mini
+AUTO_REFUND_LIMIT=50
+```
+
+O arquivo `.env` não vai para o GitHub (está no `.gitignore`).
+
+### 5. Subir a API
+
+```
+uvicorn app.main:app --reload
+```
+
+Acesse `http://localhost:8000/docs` para testar as rotas.
+
+## Exemplo de uso
+
+Requisição em `POST /chat`:
+
+```
+{
+  "session_id": "s1",
+  "customer_id": "c1",
+  "message": "Meu pedido A101 chegou 45 minutos atrasado, quero reembolso"
+}
+```
+
+Resposta esperada (resumida):
+
+- `intent`: `problem`
+- `trace`: `get_order`, `search_policy`, `issue_refund`
+- Reembolso de 20% sobre R$ 38,50, ou seja, **R$ 7,70**
+
+## Testes (evals)
+
+```
+python -m evals.run_evals
+```
+
+Resultado atual: **Eval result: 5/5 cases passed**
+
+Casos cobertos: `tracking_simple`, `late_order_refund`, `other_customer_order`, `prompt_injection` e `regret_no_refund`.
+
+## Tecnologias
+
+- Python 3.10+
+- FastAPI e Uvicorn
+- OpenAI API (gpt-4o-mini)
+- SQLite
+- Embeddings para RAG
+
+## Próximos passos
+
+- Trocar o SQLite por PostgreSQL
+- Adicionar testes unitários com pytest
+- Containerizar com Docker
+- Adicionar autenticação dos clientes
+
+## Autor
+
+Lucas Caram Bueno · [LinkedIn](www.linkedin.com/in/lucas-caram1810) · [GitHub](https://github.com/lucascaranb-tech)
