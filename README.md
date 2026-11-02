@@ -59,7 +59,7 @@ delivery-support-agents/
 ### 1. Clonar e entrar na pasta
 
 ```bash
-git clone https://github.com/lucascaranb-tech/delivery-support-agents.git
+git clone https://github.com/lucascaranb-tech/suporte-delivery-agentes.git
 cd delivery-support-agents
 ```
 
