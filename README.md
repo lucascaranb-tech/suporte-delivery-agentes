@@ -2,11 +2,11 @@
 
 Um sistema de suporte ao cliente baseado em múltiplos agentes para serviços de entrega de comida, desenvolvido com Python, FastAPI e a API da OpenAI (gpt-4o-mini).
 
-Quando um cliente entra em contato relatando um atraso no pedido, um item faltante ou solicitando um reembolso, um "agente de triagem" identifica a intenção e encaminha o atendimento para o agente especialista adequado. Esse agente utiliza ferramentas específicas para consultar os detalhes do pedido, verificar as políticas da empresa e realizar o reembolso — ou, se necessário, escalar o caso para um atendente humano.
+Quando um cliente entra em contato relatando um atraso no pedido, um item faltante ou solicitando um reembolso, um agente de triagem identifica a intenção e encaminha o atendimento para o agente especialista adequado. Esse agente utiliza ferramentas específicas para consultar os detalhes do pedido, verificar as políticas da empresa e realizar o reembolso dentro dos limites definidos.
 
 ## Por que este projeto?
 
-Este é o meu terceiro projeto envolvendo agentes de IA, após desenvolver soluções para pedidos em restaurantes e para um banco digital. O foco aqui está nos elementos que tornam os agentes seguros e confiáveis ​​para um ambiente de produção:
+Este é o meu terceiro projeto envolvendo agentes de IA, após desenvolver soluções para pedidos em restaurantes e para um banco digital. O foco aqui está nos elementos que tornam os agentes seguros e confiáveis para um ambiente de produção:
 
 - Roteamento entre múltiplos agentes (agente de triagem + agentes especialistas)
 - Uso de ferramentas (*tool calling*), com um conjunto restrito de funcionalidades para cada agente
@@ -14,6 +14,10 @@ Este é o meu terceiro projeto envolvendo agentes de IA, após desenvolver solu�
 - Mecanismos de proteção (*guardrails*): mascaramento de dados sensíveis (PII), detecção de *prompt injection* e limites rígidos para reembolsos definidos no código
 - Registro de auditoria (*audit log*) de todas as chamadas de ferramentas
 - Avaliações automatizadas (*evals*) para testar o comportamento dos agentes
+
+## Arquitetura
+
+```text
 cliente -> FastAPI (/chat)
              |
              v
@@ -31,7 +35,7 @@ Agente de pedido    Agente de      Guardrails
 
 ## Estrutura do projeto
 
-```
+```text
 delivery-support-agents/
 ├── app/
 │   ├── agents.py       # orquestração dos agentes
@@ -54,7 +58,7 @@ delivery-support-agents/
 
 ### 1. Clonar e entrar na pasta
 
-```
+```bash
 git clone https://github.com/lucascaranb-tech/delivery-support-agents.git
 cd delivery-support-agents
 ```
@@ -63,21 +67,21 @@ cd delivery-support-agents
 
 Windows (PowerShell):
 
-```
+```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
 Mac ou Linux:
 
-```
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
 ### 3. Instalar dependências
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
@@ -85,7 +89,7 @@ pip install -r requirements.txt
 
 Copie o `.env.example` para `.env` e preencha:
 
-```
+```text
 OPENAI_API_KEY=sua-chave-aqui
 OPENAI_MODEL=gpt-4o-mini
 AUTO_REFUND_LIMIT=50
@@ -95,7 +99,7 @@ O arquivo `.env` não vai para o GitHub (está no `.gitignore`).
 
 ### 5. Subir a API
 
-```
+```bash
 uvicorn app.main:app --reload
 ```
 
@@ -105,7 +109,7 @@ Acesse `http://localhost:8000/docs` para testar as rotas.
 
 Requisição em `POST /chat`:
 
-```
+```json
 {
   "session_id": "s1",
   "customer_id": "c1",
@@ -121,7 +125,7 @@ Resposta esperada (resumida):
 
 ## Testes (evals)
 
-```
+```bash
 python -m evals.run_evals
 ```
 
@@ -139,6 +143,7 @@ Casos cobertos: `tracking_simple`, `late_order_refund`, `other_customer_order`, 
 
 ## Próximos passos
 
+- Escalonar casos complexos para um atendente humano
 - Trocar o SQLite por PostgreSQL
 - Adicionar testes unitários com pytest
 - Containerizar com Docker
@@ -146,4 +151,7 @@ Casos cobertos: `tracking_simple`, `late_order_refund`, `other_customer_order`, 
 
 ## Autor
 
-Lucas Caram Bueno · [LinkedIn](www.linkedin.com/in/lucas-caram1810) · [GitHub](https://github.com/lucascaranb-tech)
+Lucas Caram Bueno · [LinkedIn](https://www.linkedin.com/in/lucas-caram1810) · [GitHub](https://github.com/lucascaranb-tech)
+````
+
+Para aplicar: abra o `README.md` no VS Code, apague tudo, cole esse conteúdo, salve e rode `git pull`, `git add .`, `git commit -m "Ajusta README"` e `git push`.
