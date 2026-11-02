@@ -176,6 +176,11 @@ python -m evals.run_evals --case late_order_refund
 - Cada caso confere a intenção, as ferramentas usadas, o valor reembolsado, os tickets abertos e se a resposta vazou dados de outro cliente
 - Há casos com duas mensagens (item faltando) e com valor sugerido pelo cliente
 - `--runs N` repete cada caso N vezes, porque o modelo varia entre execuções
+'''
+## Teste dos Evals
+<img width="1636" height="846" alt="image" src="https://github.com/user-attachments/assets/34549706-12b3-4cd5-ae49-b3ee401206b2" />
+
+
 
 ## Tecnologias
 
