@@ -14,7 +14,6 @@ Este é o meu terceiro projeto envolvendo agentes de IA, após desenvolver solu�
 - Mecanismos de proteção (*guardrails*): mascaramento de dados sensíveis (PII), detecção de *prompt injection* e limites rígidos para reembolsos definidos no código
 - Registro de auditoria (*audit log*) de todas as chamadas de ferramentas
 - Avaliações automatizadas (*evals*) para testar o comportamento dos agentes
-[Estrutura do projeto (1).md](https://github.com/user-attachments/files/34254632/Estrutura.do.projeto.1.md)
 cliente -> FastAPI (/chat)
              |
              v
